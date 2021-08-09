@@ -16,3 +16,5 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+Route::view('loginpage',view('login'));
+Route::post('islogin','Admincontrol@adminloged');
