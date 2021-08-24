@@ -3,92 +3,88 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\branch;
 use App\course;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Session;
 
 class Coursecontrol extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
+
+    public function GetAllWithOffer($inst_id)
     {
-        //
+        $course = DB::table('course')->where('instituteId', $inst_id)->leftJoin('offer', 'course.courseId', '=', 'offer.courseId')
+            ->select('course.*', 'offer.*')->get()->all();
+        return $course;
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
+    public function GetOnlyWithOffer($inst_id)
     {
-        $branches = branch::all();
-        return view('courseadd', compact('branches'));
+        $course = DB::table('course')->where('instituteId', $inst_id)->join('offer', 'course.courseId', '=', 'offer.courseId')
+            ->select('course.*', 'offer.*')->get()->all();
+        return $course;
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\Response
-     */
     public function store(Request $request)
     {
         $course = new course;
-        $course->branchid = $request->branchid;
-        $course->cname = $request->cname;
+        //$course->courseId = $request->courseId;
+        $course->name = $request->name;
+        $course->instituteId = $request->instituteId;
+        $course->type = $request->type;
+        $course->details = $request->details;
+        $course->startDate = $request->startDate;
+        $course->endDate = $request->endDate;
+        $course->startTime = $request->startTime;
+        $course->endTime = $request->endTime;
+        $course->starred = $request->starred;
+        $Times = serialize($request->times);
+        $course->times = $Times;
         $course->save();
-        return redirect('addcourse');
+        return redirect('/institute_page');
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param int $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show()
+    public function GetByInstId($inst_id)
     {
-        $courses = course::select('branches.bfull', 'courses.cname')
-            ->join('branches', 'courses.branch_id', 'branches.id')
-            ->get();
-        return view('courseshow', compact('courses'));
+        return DB::table('course')->where('instituteId', $inst_id)->get()->all();
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param int $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
+    public function GetById($id)
     {
-        //
+        $course = DB::table('course')->find($id)->get();
+        return $course;
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @param int $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
+    public function Edit(Request $request)
     {
-        //
+        $id = $request->courseId;
+        $UpdateData = [
+            'name' => $request->name,
+            'type' => $request->type,
+            'details' => $request->details,
+            'startDate' => $request->startDate,
+            'endDate' => $request->endDate,
+            'startTime' => $request->startTime,
+            'endTime' => $request->endTime,
+            'times' => serialize($request->times),
+            'starred' => $request->starred
+        ];
+        DB::table('course')->where('courseId', $id)->update($UpdateData);
+        session::flash('hint', 'Data Updated Successfully!');
+        return redirect('/institute_page');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param int $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
+    public function Delete($courseId)
     {
-        //
+        DB::table('courses')->find($courseId)->delete();
+        session::flash('hint', 'Course Deleted Successfully!');
+        return redirect('/institute_page');
     }
+
+    public function Starred($courseId)
+    {
+        DB::table('course')->where('courseId', $courseId)->update(['starred' => true]);
+        session::flash('hint', 'Course Starred Successfully!');
+        return redirect('/institute_page');
+    }
+
 }

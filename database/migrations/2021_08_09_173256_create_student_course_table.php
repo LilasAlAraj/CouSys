@@ -17,10 +17,7 @@ class CreateStudentCourseTable extends Migration
             $table->id('s_cId');
             $table->foreignId('courseId')->references('courseId')->on('course');
             $table->foreignId('studentId')->references('studentId')->on('student');
-
-
-            //this is instead of creating new table to store requests of join to a course
-            $table->boolean('isAccepted');
+            $table->string('time');
             $table->timestamps();
         });
     }

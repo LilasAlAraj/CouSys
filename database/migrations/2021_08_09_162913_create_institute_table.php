@@ -30,8 +30,6 @@ class CreateInstituteTable extends Migration
             $table->integer('votings');
             $table->integer('numOfVotings');
             $table->boolean('isAccepted');
-
-
             $table->timestamps();
         });
     }

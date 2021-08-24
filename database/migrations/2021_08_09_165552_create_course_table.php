@@ -22,11 +22,8 @@ class CreateCourseTable extends Migration
             $table->text('details');
             $table->date('startDate');
             $table->date('endDate');
-            $table->time('startTime');
-            $table->time('endTime');
             $table->boolean('starred');
-
-
+            $table->text('times');
             $table->timestamps();
         });
     }
