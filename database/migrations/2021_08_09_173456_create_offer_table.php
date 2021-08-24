@@ -19,8 +19,6 @@ class CreateOfferTable extends Migration
             $table->text('details');
             $table->dateTime('startDateTime');
             $table->dateTime('endDateTime');
-
-
             $table->timestamps();
         });
     }
