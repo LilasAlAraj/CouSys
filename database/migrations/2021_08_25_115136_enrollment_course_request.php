@@ -13,7 +13,13 @@ class EnrollmentCourseRequest extends Migration
      */
     public function up()
     {
-        //
+        Schema::create('enrollmentCourseRequest', function (Blueprint $table) {
+            $table->id('requestId');
+            $table->foreignId('courseId')->references('courseId')->on('course');
+            $table->foreignId('studentId')->references('studentId')->on('student');
+            $table->string('time');
+            $table->timestamps();
+        });
     }
 
     /**
@@ -24,5 +30,7 @@ class EnrollmentCourseRequest extends Migration
     public function down()
     {
         //
+        Schema::dropIfExists('enrollmentCourseRequest');
+
     }
 }

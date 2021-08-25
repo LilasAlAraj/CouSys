@@ -16,7 +16,7 @@ class CreateFeedbackTable extends Migration
         Schema::create('feedback', function (Blueprint $table) {
             $table->id('feedbackID');
             $table->text('feedbackText');
-            $table->boolean('isReviewed');
+            $table->boolean('isReviewed')->default(false);
             $table->enum('typeOfUser', ['Student', 'Institute']);
 
 
