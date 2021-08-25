@@ -8,4 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 class feedback extends Model
 {
     use HasFactory;
+    protected $guarded = ['id'];
+    protected $table = 'feedback';
 }

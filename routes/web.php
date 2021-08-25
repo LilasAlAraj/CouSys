@@ -1,5 +1,5 @@
 <?php
-//namespace App\Http\Controllers;
+namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Route;
 
@@ -14,66 +14,50 @@ use Illuminate\Support\Facades\Route;
 //|
 //*/
 //
-Route::get('/Leen', function () {
-    echo 'welcome Leen ';
-    $arr = ['a', 'b', 'c'];
-    echo $arr[0];
-    // return view('Dania');
-});
 
-Route::get('/Dania', function () {
-    return 'welcome Dania';
-});
-//
 
 ////////////////////////////////////////////////////////
 /////                                                ///
-/////            Routes for Students                ///
+/////            Routes for Feedbacks                ///
 /////                                                ///
 ////////////////////////////////////////////////////////
+Route::post('/feedback/send', [FeedbackController::class, 'sendFeedback'])->name('sendFeedback');
+Route::post('/feedback/review', [FeedbackController::class, 'reviewFeedback'])->name('reviewFeedback');
 
 
-//
-//
+////////////////////////////////////////////////////////
+/////                                                ///
+/////             Routes for Students                ///
+/////                                                ///
+////////////////////////////////////////////////////////
+Route::post('/sign-up/student', [Studentcontrol::class, 'storeStudentRecord'])->name('signUpStudent');
+//Route::post('/sign-in/student', [Studentcontrol::class, 'storeStudentRecord'])->name('signUpStudent');
+Route::post('/student/delete', [Studentcontrol::class, 'deleteStudentRecord'])->name('editStudent');
+Route::post('/student/edit', [Studentcontrol::class, 'editStudentRecord'])->name('editStudent');
+Route::post('/student/course-enrollment', [Studentcontrol::class, 'storeStudentRecord'])->name('signUpStudent');
+
+
 ////////////////////////////////////////////////////////
 /////                                                ///
 /////   Routes for uploading and downloading files   ///
 /////                                                ///
 ////////////////////////////////////////////////////////
-//
-//
-//Route::get('/upload-file', [FileController::class, 'uploadForm']);
-//
-//Route::post('/upload-file', [FileController::class, 'fileUpload'])->name('fileUpload');
-//
-//
-//Route::get('/download-file/{id}', [FileController::class, 'downloadForm']);
-//
-//Route::post('/download-file/{id}', [FileController::class, 'fileDownload'])->name('fileDownload');
 
-//
+
+Route::post('/institute/upload-file', [FileController::class, 'fileUpload'])->name('fileUpload');
+Route::post('/institute/download-file/', [FileController::class, 'fileDownload'])->name('fileDownload');
+Route::post('/institute/remove-file/', [FileController::class, 'fileRemove'])->name('fileRemove');
+
 ///////////////////////////////////////////////////////
 /////                                               ///
-/////     Route for remove a file from database     ///
-/////                                               ///
-///////////////////////////////////////////////////////
-//
-//
-//Route::get('/remove-file/{id}', [FileController::class, 'removeForm']);
-//
-//Route::post('/remove-file/{id}', [FileController::class, 'fileRemove'])->name('fileRemove');
-//
-//
-///////////////////////////////////////////////////////
-/////                                               ///
-/////              Route for Institute              ///
+/////             Routes for Institute              ///
 /////                                               ///
 ///////////////////////////////////////////////////////
 //Route::get('/institute_page',view('institute_page'));
 //
 //Route::get('/InstituteLogin', [InstituteController::class, 'InstituteLoginForm']);
 //
-//Route::post('/InstituteLogin', [InstituteController::class, 'institutelogged']);
+Route::post('/InstituteLogin', [InstituteController::class, 'institutelogged']);
 //
 //Route::get('/InstituteSignUp', [InstituteController::class, 'InstituteSignUpForm']);
 //
@@ -99,6 +83,9 @@ Route::get('/Dania', function () {
 //
 //Route::post('/StarredCourse/{courseId}', [InstituteController::class, 'StarredCourse']);
 //
+Route::post('/course/request/add', [EnrollmentCourseRequestController::class, 'addRequest']);
+Route::post('/course/request/accept', [EnrollmentCourseRequestController::class, 'AcceptRequest']);
+Route::post('/course/request/dismiss', [EnrollmentCourseRequestController::class, 'DismissRequest']);
 
 ////////////////////////////////////////////////////////
 /////                                                ///

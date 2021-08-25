@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use http\Env\Response;
 use Illuminate\Http\Request;
 use App\student;
 use App\branch;
@@ -12,31 +13,22 @@ use Illuminate\Support\Facades\DB;
 class Studentcontrol extends Controller
 {
 
-    public function StudentLoginForm()
-    {
-        return view('StudentLogin');
-    }
-
-    public function StudentSignUpForm()
-    {
-        return view('StudentSignUp');
-    }
-
-
-    public function StudenyEditForm($id)
-    {
-        $students = student::find($id);
-        return view('StudentEdit', compact('students'));
-    }
-
-
     //*****************************************************//
     //                                                     //
     //*******store new student in a storage database*******//
     //                                                     //
     //*****************************************************//
 
-    public function StudentStore(Request $request)
+
+    public function CheckExistedBefore($email)
+    {
+        $std = DB::table('student')->where('email', $email)->get()->first();
+        if ($std)
+            return false;
+        return true;
+    }
+
+    public function storeStudentRecord(Request $request)
     {
         if ($this->CheckExistedBefore($request->email)) {
             $student = new student;
@@ -47,10 +39,10 @@ class Studentcontrol extends Controller
             $student->phone = $request->phone;
             $student->save();
 
-            return redirect('StudentLogin');
+            return response()->json($student);
         } else {
-            session::flash('hint', 'This email address is already registered!');
-            return redirect('/StudentSignUp')->withInput();
+
+            return response()->json('this account is already registered');
         }
 
     }
@@ -61,11 +53,11 @@ class Studentcontrol extends Controller
     //                                                              //
     //**************************************************************//
 
-    public function StudentDelete($id)
+    public function deleteStudentRecord(Request $request)
     {
-        $student = student::find($id);
-        $student->delete();
-        return redirect('StudentLogin');
+        $student = DB::table('student')->where('studentId', $request->id);
+        return response()->json($student->delete());
+
     }
 
     //***************************************************************************//
@@ -74,19 +66,14 @@ class Studentcontrol extends Controller
     //                                                                           //
     //***************************************************************************//
 
-    public function update(Request $request, $id)
+    public function editStudentRecord(Request $request)
     {
-        $student = student::find($id);
-        $student->fname = $request->fname;
-        $student->lName = $request->lName;
-        $student->email = $request->email;
-        $student->password = $request->password;
-        $student->phone = $request->phone;
-        $student->save();
-        return redirect('StudentDetails');
+
+        return response()->json(DB::update('update student set fname = ? , lname = ?, email = ?, password = ?, phone=?
+                where studentId = ?', [$request->fname, $request->lname, $request->email,
+            $request->password, $request->phone, $request->id]));
+
     }
-
-
 
 
 }
