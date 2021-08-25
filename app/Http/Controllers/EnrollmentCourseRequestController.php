@@ -2,15 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\student_course;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
+use App\Models\EnrollmentCourseRequest;
 
-class RequestController extends Controller
+class EnrollmentCourseRequestController extends Controller
 {
     public function GetAllRequest($inst_id)
     {
-        $request = DB::table('request')
+        $request = DB::table('enrollmentCourseRequest')
             ->join('course', 'course.courseId', '=', 'request.courseId')
             ->where('course.instituteId', $inst_id)
             ->join('student', 'student.studentId', '=', 'request.studentId')
@@ -19,16 +21,34 @@ class RequestController extends Controller
         return $request;
     }
 
-    public function AcceptRequest($requestId)
+    public function addRequest(Request $request)
     {
-        $request = DB::table('request')->find($requestId)->get();
-        (new StudentCourseController)->AddNewRecord($request);
-        DB::table('request')->find($requestId)->delete();
+        $newRequest = new  EnrollmentCourseRequest;
+        $newRequest->courseId = $request->courseId;
+        $newRequest->studentId = $request->studentId;
+        $newRequest->time = now(+3);
+
+        return response()->json($newRequest->save());
+
     }
 
-    public function DismissRequest($requestId)
+    public function AcceptRequest(Request $request)
     {
-        DB::table('request')->find($requestId)->delete();
+        $_ecr_ = DB::table('enrollmentCourseRequest')->where('requestId', $request->requestId);
+        $ecr = $_ecr_->get()->first();
+        $sc = new student_course;
+        $sc->courseId = $ecr->courseId;
+        $sc->studentId = $ecr->studentId;
+        $sc->time = now(+3);
+
+        $sc->save();
+        $_ecr_->delete();
+
+    }
+
+    public function DismissRequest(Request $request)
+    {
+        return response()->json(DB::table('enrollmentCourseRequest')->where('requestId', $request->requestId)->delete());
     }
 
 }

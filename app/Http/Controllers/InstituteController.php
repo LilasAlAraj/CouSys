@@ -2,8 +2,9 @@
 
 
 namespace App\Http\Controllers;
-
+use App\Http\Controllers\EnrollmentCourseRequestController;
 use App\Models\Institute;
+use http\Env\Response;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
@@ -63,11 +64,11 @@ class InstituteController extends Controller
     {
         $institute = DB::table('institute')->where('email', $request->email)->where('password', $request->password);
         if ($institute && $institute->get('isAccepted') == true) {
-            $request->session()->put('institute_session', $institute[0]['id']);
-            return redirect('/institute_page');
+            //$request->session()->put('institute_session', $institute[0]['id']);
+
+            return response()->json($institute->get('instituteId'));
         } else {
-            session::flash('hint', 'Email or Password not match');
-            return redirect('/InstituteLogin')->withInput();
+            return response()->json('Email or Password not match');
         }
     }
 
@@ -192,35 +193,10 @@ class InstituteController extends Controller
         return view('ViewAllFiles', $Files);
     }
 
-    ///////////////////   Request     ///////////////////
 
-    public function ViewAllRequests(Request $request)
-    {
-        $instituteId = $request->session()->get('institute_session');
-        $Requests = (new RequestController)->GetAllRequest($instituteId);
-        return view('ViewAllRequests', $Requests);
-    }
-
-    public function AcceptStudent($requestId)
-    {
-        (new RequestController)->AcceptRequest($requestId);
-    }
-
-    public function DismissStudent($requestId)
-    {
-        (new RequestController)->DismissRequest($requestId);
-    }
 
     ///////////////////   Feedback     ///////////////////
 
-    public function FeedbackForm()
-    {
-        return view('InstituteFeedback');
-    }
 
-    public function SendFeedback(Request $request)
-    {
-
-    }
 
 }
