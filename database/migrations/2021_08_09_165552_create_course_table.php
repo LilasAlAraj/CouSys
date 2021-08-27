@@ -23,7 +23,7 @@ class CreateCourseTable extends Migration
             $table->date('startDate');
             $table->date('endDate');
             $table->boolean('starred');
-            $table->text('times');
+            $table->string('times');
             $table->timestamps();
         });
     }

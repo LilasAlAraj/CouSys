@@ -2,37 +2,31 @@
 
 
 namespace App\Http\Controllers;
-use App\Http\Controllers\EnrollmentCourseRequestController;
+
+
 use App\Models\Institute;
-use http\Env\Response;
+use App\Models\Accounts_log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 
 class InstituteController extends Controller
 {
-    public function InstituteLoginForm()
-    {
-        return view('InstituteLogin');
-    }
 
-    public function InstituteSignUpForm()
+    public function CheckExistedBefore($email)
     {
-        return view('InstituteSignUp');
-    }
-
-    public function LogOut(Request $request)
-    {
-        $request->session()->invalidate();
+        $inst = DB::table('institute')->where('email', $email)->first();
+        if ($inst)
+            return false;
+        return true;
     }
 
     public function InstituteSignUp(Request $request)
     {
         if ($this->CheckExistedBefore($request->email)) {
             $institute = new Institute();
-            $institute->instituteId = $request->instituteId;
             $institute->name = $request->name;
-            $institute->email = $request->email;
+            $institute->email = $request->email;;
             $institute->phone = $request->phone;
             $institute->password = $request->password;
             $institute->city = $request->city;
@@ -40,35 +34,34 @@ class InstituteController extends Controller
             $institute->details = $request->details;
             $institute->openTime = $request->openTime;
             $institute->closeTime = $request->closeTime;
-            $institute->votings = $request->votings;
-            $institute->numOfVotings = $request->numOfVotings;
+            $institute->votings = 0;
+            $institute->numOfVotings = 0;
             $institute->isAccepted = false;
-            $institute->save();
-            /////////////////////////======   HINT   ======////////////////////
-            return view('Request');
+
+            $accountLog = new Accounts_Log;
+            $accountLog->email = $request->email;
+            $accountLog->typeOfUser = 'Institute';
+
+            if ($institute->save() && $accountLog->save())
+                return response()->json(['1' => 'Your request is in progress']);
+            return response()->json(['-1' => 'Error']);
         } else {
-            session::flash('hint', 'This institute has been registered before!');
-            return redirect('/InstituteSignUp')->withInput();
+            return response()->json(['-1' => 'This institute has been registered before!']);
         }
     }
 
-    public function CheckExistedBefore($email)
-    {
-        $inst = DB::table('institute')->where('email', $email)->get()->first();
-        if ($inst)
-            return false;
-        return true;
-    }
 
-    public function institutelogged(Request $request)
+    public static function institutelogged(Request $request)
     {
-        $institute = DB::table('institute')->where('email', $request->email)->where('password', $request->password);
-        if ($institute && $institute->get('isAccepted') == true) {
-            //$request->session()->put('institute_session', $institute[0]['id']);
-
-            return response()->json($institute->get('instituteId'));
+        $institute = DB::table('institute')->where('email', $request->email)->where('password', $request->password)->first();
+        if ($institute) {
+            if (($institute->isAccepted) == true) {
+                return response()->json(['institute_ID' => $institute->instituteId]);
+            } else {
+                return response()->json(['-1' => 'Your Request is in progress']);
+            }
         } else {
-            return response()->json('Email or Password not match');
+            return response()->json(['-1' => 'Email or Password not match']);
         }
     }
 
@@ -86,16 +79,18 @@ class InstituteController extends Controller
 
     public function DeleteById($instituteId)
     {
-        DB::table('institute')->find($instituteId)->delete();
-        session::flash('hint', 'Institute deleted successfully!');
-        return redirect('/DashBoard');
+        if (DB::table('institute')->where('instituteId', $instituteId)->delete()) {
+            (new Coursecontrol())->DeleteByInsId($instituteId);
+            return response()->json(['1' => 'Institute deleted successfully']);
+        }
+        return response()->json(['-1' => 'Error']);
     }
 
     public function AcceptRequest($instituteId)
     {
-        DB::table('institute')->find($instituteId)->update(['isAccepted' => true]);
-        session::flash('hint', 'Institute added successfully to the system!');
-        return redirect('/DashBoard');
+        if (DB::table('institute')->where('instituteId', $instituteId)->update(['isAccepted' => true]))
+            return response()->json(['1' => 'Institute added successfully']);
+        return response()->json(['-1' => 'Error']);
     }
 
     public function DismissRequest($instituteId)
@@ -107,82 +102,68 @@ class InstituteController extends Controller
 
     ///////////////////   Courses     ///////////////////
 
-    public function ViewAllCoursesWithOffer(Request $request)
+    public function ViewAllCoursesWithOffer($inst_id)
     {
-        $inst_id = $request->session()->get('institute_session');//get the id of the institute
+        //  $inst_id=$request->session()->get('institute_session');//get the id of the institute
         $courses = (new Coursecontrol)->GetAllWithOffer($inst_id);//get all courses for this institute
-        return view('ViewAllCourses', $courses);
+        //return view('ViewAllCourses',$courses);
+        if ($courses)
+            return response()->json(['1' => $courses]);
+        return response()->json(['-1' => 'No courses']);
     }
 
-    public function ViewAllCourses(Request $request)
-    {
-        $inst_id = $request->session()->get('institute_session');//get the id of the institute
-        $courses = (new Coursecontrol)->GetByInstId($inst_id);//get all courses for this institute
-        return view('ViewAllCourses', $courses);
-    }
+//    public function ViewAllCourses($inst_id)
+//    {
+//        //$inst_id=$request->session()->get('institute_session');//get the id of the institute
+//        $courses =  (new Coursecontrol)->GetByInstId($inst_id);//get all courses for this institute
+//        return view('ViewAllCourses',$courses);
+//    }
 
-    public function AddNewCourseForm()
-    {
-        return view('AddNewCourseForm');
-    }
 
     public function AddNewCourse(Request $request)
     {
-        (new Coursecontrol)->store($request);
+        return (new Coursecontrol)->store($request);
     }
 
     public function DeleteCourse($courseId)
     {
-        (new Coursecontrol)->Delete($courseId);
-    }
-
-    public function EditCourseForm()
-    {
-        return view('EditCourseForm');
+        return (new Coursecontrol)->Delete($courseId);
     }
 
     public function EditCourse(Request $request)
     {
-        (new Coursecontrol)->Edit($request);
+        return (new Coursecontrol)->Edit($request);
     }
 
     public function StarredCourse($courseId)
     {
-        (new Coursecontrol)->Starred($courseId);
+        return (new Coursecontrol)->Starred($courseId);
     }
 
     ///////////////////   Offers     ///////////////////
 
-    public function ViewAllOffers(Request $request)
+    public function ViewAllOffers($inst_id)
     {
-        $inst_id = $request->session()->get('institute_session');//get the id of the institute
         $offers = (new Coursecontrol)->GetOnlyWithOffer($inst_id);
-        return view('ViewAllOffers', $offers);
-    }
-
-    public function AddNewOfferForm()
-    {
-        return view('AddNewOfferForm');
+        if ($offers)
+            return response()->json(['1' => $offers]);
+        return response()->json(['-1' => 'No offers']);
     }
 
     public function AddNewOffer(Request $request)
     {
-        (new OfferController)->store($request);
+        return (new OfferController)->store($request);
     }
 
     public function DeleteOffer($offerId)
     {
-        (new OfferController)->Delete($offerId);
+        return (new OfferController)->Delete($offerId);
     }
 
-    public function EditOfferForm()
-    {
-        return view('EditOfferForm');
-    }
 
     public function EditOffer(Request $request)
     {
-        (new OfferController)->Edit($request);
+        return (new OfferController)->Edit($request);
     }
 
     ///////////////////   Files     ///////////////////
@@ -190,13 +171,39 @@ class InstituteController extends Controller
     public function ViewAllFiles($courseId)
     {
         $Files = (new FileController)->GetByCourseID($courseId);
-        return view('ViewAllFiles', $Files);
+        if ($Files)
+            return response()->json(['1' => $Files]);
+        return response()->json(['-1' => 'No $Files']);
     }
 
+    ///////////////////   Request     ///////////////////
 
+//    public function ViewAllRequests(Request $request)
+//    {
+//        $instituteId=$request->session()->get('institute_session');
+//        $Requests = (new RequestController)->GetAllRequest($instituteId);
+//        return view('ViewAllRequests',$Requests);
+//    }
+//
+//    public function AcceptStudent($requestId)
+//    {
+//        (new RequestController)->AcceptRequest($requestId);
+//    }
+//
+//    public function DismissStudent($requestId)
+//    {
+//        (new RequestController)->DismissRequest($requestId);
+    //   }
 
-    ///////////////////   Feedback     ///////////////////
+    ///////////////////   search     ///////////////////
 
-
+    public function GetByName($name)
+    {
+        $institutes = DB::table('institute')->where('name', $name)->get()->all();
+        if ($institutes) {
+            return response()->json(['1' => $institutes]);
+        }
+        return response()->json(['-1' => 'No Result']);
+    }
 
 }

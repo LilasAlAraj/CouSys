@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\File;
 use Illuminate\Support\Facades\DB;
-use Response;
 
 class FileController extends Controller
 {
@@ -33,28 +32,21 @@ class FileController extends Controller
     }
 
 
-    public function fileRemove(Request $request)
+    public function fileRemove($fileID)
     {
-        return response()->json(
-            DB::table('file')->where('fileId', $request->fileId)->delete());
+        $file = DB::table('File')->where('fileID', $fileID)->delete();
     }
 
-    public function fileDownload(Request $request)
+    public function fileDownload($fileID)
     {
-        $file = DB::table('file')->where('fileId', $request->fileId);
-        if ($file) {
-            $pathToFile = storage_path($file->get('filePath'));
-            if (file_exists($pathToFile))
-                $response = Response::download($pathToFile);
-            else
-                $response = response()->json('file not found');
-        }
-        return $response;
+
+        $file = DB::table('File')->where('fileID', $fileID)->firstOrFail();
+        $pathToFile = storage_path($file->filePath);
+        return Response::download($pathToFile);
     }
 
 
-    public
-    function fileUpload(Request $req)
+    public function fileUpload(Request $req)
     {
         $req->validate([
 

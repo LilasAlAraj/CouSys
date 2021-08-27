@@ -14,19 +14,17 @@ class CreateInstituteTable extends Migration
     public function up()
     {
         //
-
-
         Schema::create('institute', function (Blueprint $table) {
             $table->id('instituteId');
             $table->string('name');
             $table->string('phone');
             $table->string('password');
-            $table->string('email');
+            $table->string('email')->unique();
             $table->string('city');
             $table->string('street');
             $table->text('details');
-            $table->time('openTime');
-            $table->time('closeTime');
+            $table->string('openTime');
+            $table->string('closeTime');
             $table->integer('votings');
             $table->integer('numOfVotings');
             $table->boolean('isAccepted');

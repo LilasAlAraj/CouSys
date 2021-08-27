@@ -3,48 +3,41 @@
 namespace App\Http\Controllers;
 
 use App\admin;
+use App\Models\Accounts_log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 
 class Admincontrol extends Controller
 {
-    public function AdminLoginForm()
-    {
-        return view('AdminLoginPage');
-    }
 
-    public function AdminLogged(Request $request)
+    public static function AdminLogged(Request $request)
     {
-        $admin = DB::table('admin')->where('username', $request->username)->where('password', $request->password)->get();
+        $admin = DB::table('admin')->where('email', $request->username)->where('password', $request->password)->first();
         if ($admin) {
-            $request->session()->put('admin_session', $admin[0]['id']);
-            return redirect('/DashBord');
+            return response()->json(['admin_ID' => $admin->adminId]);
         } else {
-            session::flash('hint', 'Email and Password not match');
-            return redirect('/AdminLogin')->withInput();
+            return response()->json(['-1' => 'Email or Password not match']);
         }
-    }
-
-
-    public function AddNewAdminForm()
-    {
-        return view('AddNewAdmin');
     }
 
     public function AddNewAdmin(Request $request)
     {
-        $adminId = DB::table('admin')->where('username', $request->username)->where('password', $request->password)->get();
+        $adminId = DB::table('admin')->where('email', $request->email)->where('password', $request->password)->first();
         if ($adminId) {
-            session::flash('hint', 'Username has been registered before!');
-            return redirect('/AddNewAdmin')->withInput();
+            return response()->json(['-1' => 'Username added before']);
         } else {
             $admin = new admin();
+            $admin->email = $request->email;
             $admin->username = $request->username;
             $admin->password = $request->password;
-            $admin->save();
-            session::flash('hint', 'New admin is added successfully');
-            return redirect('/DashBoard');
+
+            $accountLog = new Accounts_Log;
+            $accountLog->email = $request->email;
+            $accountLog->typeOfUser = 'Admin';
+            if ($accountLog->save() && $admin->save())
+                return response()->json(['1' => 'New admin added successfully']);
+            return response()->json(['-1' => 'Error']);
         }
     }
 
@@ -52,10 +45,9 @@ class Admincontrol extends Controller
     {
         $institutes = (new InstituteController)->GetNotAccepted();
         if ($institutes == null) {
-            session::flash('hint', 'There is no requests!');
-            return redirect('/DashBoard');
+            return response()->json(['-1' => 'No Request']);
         } else {
-            return view('ViewAllRequest', $institutes);
+            return response()->json(['1' => $institutes]);
         }
     }
 
@@ -63,21 +55,21 @@ class Admincontrol extends Controller
     {
         $institutes = (new InstituteController)->GetALL();
         if ($institutes == null) {
-            session::flash('hint', 'There is no institutes!');
-            return redirect('/DashBoard');
+            return response()->json(['-1' => 'There is no institutes!']);
         } else {
-            return view('ViewAllInstitute', $institutes);
+            return response()->json(['1' => $institutes]);
         }
     }
 
+
     public function DeleteInstitute($instituteId)
     {
-        (new InstituteController())->DeleteById($instituteId);
+        return (new InstituteController())->DeleteById($instituteId);
     }
 
     public function AcceptRequest($instituteId)
     {
-        (new InstituteController())->AcceptRequest($instituteId);
+        return (new InstituteController())->AcceptRequest($instituteId);
     }
 
     public function DismissRequest($instituteId)
@@ -87,15 +79,19 @@ class Admincontrol extends Controller
 
     ///////////////////////////////////////////////////////////////
 
-
-    public function ViewAllStudents()
+    public function ViewAllStudent()
     {
-
+        $students = (new Studentcontrol())->GetALL();
+        if ($students == null) {
+            return response()->json(['-1' => 'There is no institutes!']);
+        } else {
+            return response()->json(['1' => $students]);
+        }
     }
 
     public function DeleteStudent($studentId)
     {
-
+        return (new Studentcontrol())->DeleteById($studentId);
     }
 
     ///////////////////////////////////////////////////////////////

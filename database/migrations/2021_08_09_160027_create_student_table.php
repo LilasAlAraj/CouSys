@@ -19,7 +19,7 @@ class CreateStudentTable extends Migration
             $table->string('fName');
             $table->string('lName');
             $table->string('password');
-            $table->string('email');
+            $table->string('email')->unique();
             $table->string('phone');
 
 

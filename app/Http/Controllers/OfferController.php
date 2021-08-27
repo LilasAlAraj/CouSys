@@ -10,16 +10,22 @@ use Illuminate\Support\Facades\Session;
 class OfferController extends Controller
 {
 
+    /*
+ "courseId" : "2",
+ "startDateTime": "2020-6-15 12:12:12",
+ "endDateTime": "2020-8-15  12:12:12",
+ "offerDetails": "available for 2 weeks"
+     */
     public function store(Request $request)
     {
         $offer = new offer;
-        // $offer->offerId=$request->offerId;
         $offer->courseId = $request->courseId;
-        $offer->details = $request->details;
+        $offer->offerDetails = $request->offerDetails;
         $offer->startDateTime = $request->startDateTime;
         $offer->endDateTime = $request->endDateTime;
-        $offer->save();
-        return redirect('/institute_page');
+        if ($offer->save())
+            return response()->json(['1' => 'Offer added successfully']);
+        return response()->json(['-1' => 'Error']);
     }
 
     public function GetById($id)
@@ -34,22 +40,22 @@ class OfferController extends Controller
 
     public function Delete($offerId)
     {
-        DB::table('offer')->find($offerId)->delete();
-        session::flash('hint', 'Offer Deleted Successfully!');
-        return redirect('/institute_page');
+        if (DB::table('offer')->where('offerId', $offerId)->delete())
+            return response()->json(['1' => 'offer deleted successfully']);
+        return response()->json(['-1' => 'Error']);
     }
 
     public function Edit(Request $request)
     {
         $offerId = $request->offerId;
         $UpdateData = [
-            //'courseId'=>$request->courseId,
-            'details' => $request->details,
+            'offerDetails' => $request->offerDetails,
             'startDateTime' => $request->startDateTime,
             'endDateTime' => $request->endDateTime
         ];
-        DB::table('offer')->where('offerId', $offerId)->update($UpdateData);
-        session::flash('hint', 'Data Updated Successfully!');
-        return redirect('/institute_page');
+        if (DB::table('offer')->where('offerId', $offerId)->update($UpdateData)) {
+            return response()->json(['1' => 'Offer updated successfully']);
+        }
+        return response()->json(['-1' => 'Error']);
     }
 }
