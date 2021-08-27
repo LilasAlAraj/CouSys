@@ -14,13 +14,11 @@ class FeedbackController extends Controller
         $newFeedback->feedbackText = $request->feedbackText;
         $newFeedback->typeOfUser = $request->typeOfUser;
         $newFeedback->isReviewed = false;
-
         return response()->json($newFeedback->save());
     }
 
     public function reviewFeedback(Request $request)
     {
-
         DB::update('update feedback set isReviewed = true where feedbackID = ?',
             [$request->feedbackID]);
         $fb = DB::table('feedback')->where('feedbackID', $request->feedbackID)->get()->first();

@@ -27,9 +27,7 @@ class EnrollmentCourseRequestController extends Controller
         $newRequest->courseId = $request->courseId;
         $newRequest->studentId = $request->studentId;
         $newRequest->time = now(+3);
-
         return response()->json($newRequest->save());
-
     }
 
     public function AcceptRequest(Request $request)
@@ -48,7 +46,9 @@ class EnrollmentCourseRequestController extends Controller
 
     public function DismissRequest(Request $request)
     {
-        return response()->json(DB::table('enrollmentCourseRequest')->where('requestId', $request->requestId)->delete());
+        if (DB::table('enrollmentCourseRequest')->where('requestId', $request->requestId)->delete())
+            return response()->json(['1' => 'Request Deleted!']);
+        return response()->json(['-1' => 'Error']);
     }
 
 }
