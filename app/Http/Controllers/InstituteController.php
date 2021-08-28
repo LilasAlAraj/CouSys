@@ -1,8 +1,5 @@
 <?php
-
-
 namespace App\Http\Controllers;
-
 
 use App\Models\Institute;
 use App\Models\Accounts_log;
@@ -12,7 +9,6 @@ use Illuminate\Support\Facades\Session;
 
 class InstituteController extends Controller
 {
-
     public function CheckExistedBefore($email)
     {
         $inst = DB::table('institute')->where('email', $email)->first();
@@ -31,17 +27,16 @@ class InstituteController extends Controller
             $institute->password = $request->password;
             $institute->city = $request->city;
             $institute->street = $request->street;
+            $institute->region = $request->region;
             $institute->details = $request->details;
             $institute->openTime = $request->openTime;
             $institute->closeTime = $request->closeTime;
             $institute->votings = 0;
             $institute->numOfVotings = 0;
             $institute->isAccepted = false;
-
             $accountLog = new Accounts_Log;
             $accountLog->email = $request->email;
             $accountLog->typeOfUser = 'Institute';
-
             if ($institute->save() && $accountLog->save())
                 return response()->json(['1' => 'Your request is in progress']);
             return response()->json(['-1' => 'Error']);
@@ -58,23 +53,27 @@ class InstituteController extends Controller
             if (($institute->isAccepted) == true) {
                 return response()->json(['institute_ID' => $institute->instituteId]);
             } else {
-                return response()->json(['-1' => 'Your Request is in progress']);
+                return response()->json(['Error' => 'Your Request is in progress']);
             }
         } else {
-            return response()->json(['-1' => 'Email or Password not match']);
+            return response()->json(['Error' => 'Password wrong']);
         }
+    }
+
+    public function InstituteProfile($instituteId)
+    {
+        $inst = DB::table('institute')->where('instituteId', $instituteId)->get()->first();
+        return response()->json(['details' => $inst, 'courses' => $this->ViewAllCoursesWithOffer($instituteId)]);
     }
 
     public function GetNotAccepted()
     {
-        $institutes = DB::table('institute')->where('isAccepted', false)->get()->all();
-        return $institutes;
+        return DB::table('institute')->where('isAccepted', false)->get()->all();
     }
 
     public function GetALL()
     {
-        $institutes = DB::table('institute')->where('isAccepted', true)->get()->all();
-        return $institutes;
+        return DB::table('institute')->where('isAccepted', true)->get()->all();
     }
 
     public function DeleteById($instituteId)
@@ -83,7 +82,7 @@ class InstituteController extends Controller
             (new Coursecontrol())->DeleteByInsId($instituteId);
             return response()->json(['1' => 'Institute deleted successfully']);
         }
-        return response()->json(['-1' => 'Error']);
+        return response()->json(['Error', 'Sign up failed']);
     }
 
     public function AcceptRequest($instituteId)
@@ -93,32 +92,23 @@ class InstituteController extends Controller
         return response()->json(['-1' => 'Error']);
     }
 
-    public function DismissRequest($instituteId)
-    {
-        DB::table('institute')->find($instituteId)->delete();
-        session::flash('hint', 'Request deleted successfully!');
-        return redirect('/DashBoard');
-    }
+//    public function DismissRequest($instituteId)
+//    {
+//        DB::table('institute')->find($instituteId)->delete();
+//        session::flash('hint', 'Request deleted successfully!');
+//        return redirect('/DashBoard');
+//    }
 
     ///////////////////   Courses     ///////////////////
 
     public function ViewAllCoursesWithOffer($inst_id)
     {
         //  $inst_id=$request->session()->get('institute_session');//get the id of the institute
-        $courses = (new Coursecontrol)->GetAllWithOffer($inst_id);//get all courses for this institute
-        //return view('ViewAllCourses',$courses);
+        $courses = (new Coursecontrol)->GetAllWithOffer($inst_id);
         if ($courses)
             return response()->json(['1' => $courses]);
         return response()->json(['-1' => 'No courses']);
     }
-
-//    public function ViewAllCourses($inst_id)
-//    {
-//        //$inst_id=$request->session()->get('institute_session');//get the id of the institute
-//        $courses =  (new Coursecontrol)->GetByInstId($inst_id);//get all courses for this institute
-//        return view('ViewAllCourses',$courses);
-//    }
-
 
     public function AddNewCourse(Request $request)
     {
@@ -176,34 +166,31 @@ class InstituteController extends Controller
         return response()->json(['-1' => 'No $Files']);
     }
 
-    ///////////////////   Request     ///////////////////
-
-//    public function ViewAllRequests(Request $request)
-//    {
-//        $instituteId=$request->session()->get('institute_session');
-//        $Requests = (new RequestController)->GetAllRequest($instituteId);
-//        return view('ViewAllRequests',$Requests);
-//    }
-//
-//    public function AcceptStudent($requestId)
-//    {
-//        (new RequestController)->AcceptRequest($requestId);
-//    }
-//
-//    public function DismissStudent($requestId)
-//    {
-//        (new RequestController)->DismissRequest($requestId);
-    //   }
-
     ///////////////////   search     ///////////////////
 
-    public function GetByName($name)
+    public function Search($word)
     {
-        $institutes = DB::table('institute')->where('name', $name)->get()->all();
+        $institutes = DB::table('institute')
+            ->where('name', $word)
+            ->orWhere('details', 'LIKE', '%' . $word . '%')
+            ->orWhere('region', 'LIKE', '%' . $word . '%')
+            ->get()->all();
         if ($institutes) {
-            return response()->json(['1' => $institutes]);
+            return $institutes;
         }
-        return response()->json(['-1' => 'No Result']);
+        return null;
     }
 
+    //// HomePage
+    public static function GetTopRating()
+    {
+        $institutes = DB::table('institute')
+            ->selectRaw('*, votings/numOfVotings as RATING')
+            ->orderBy('RATING', 'DESC')
+            ->take(5)
+            ->get();
+        if ($institutes)
+            return $institutes;
+        return null;
+    }
 }

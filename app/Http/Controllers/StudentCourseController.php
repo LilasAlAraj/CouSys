@@ -2,20 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\student_course;
+use App\Models\student_course;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class StudentCourseController extends Controller
 {
-//    public function AddNewRecord($request)
-//    {
-//        $student_course = new student_course();
-//        $student_course->courseId = $request->courseId;
-//        $student_course->studentId = $request->studentId;
-//        $student_course->time = $request->time;
-//        $student_course->save();
-//    }
+
 
 
     //*****************************************************//
@@ -31,9 +24,12 @@ class StudentCourseController extends Controller
             $student_course->courseId = $request->courseId;
             $student_course->studentId = $request->studentId;
             $student_course->time = $request->time;
-            return response()->json($student_course->save());
+            if ($student_course->save()) {
+                return response()->json(['1' => 'Failed']);
+            }
+            return response()->json(['Error' => 'Failed']);
         }
-        return response()->json(0);
+        return response()->json(['Error' => 'Failed']);
     }
 
 

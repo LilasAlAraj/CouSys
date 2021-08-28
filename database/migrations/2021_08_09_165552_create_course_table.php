@@ -15,13 +15,13 @@ class CreateCourseTable extends Migration
     {
         Schema::create('course', function (Blueprint $table) {
             $table->id('courseId');
-
             $table->foreignId('instituteId')->references('instituteId')->on('institute');
             $table->string('name');
             $table->string('type');
             $table->text('details');
             $table->date('startDate');
             $table->date('endDate');
+            $table->integer('cost');
             $table->boolean('starred');
             $table->string('times');
             $table->timestamps();

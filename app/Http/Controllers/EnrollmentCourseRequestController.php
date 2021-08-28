@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\student_course;
+use App\Models\student_course;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
@@ -26,7 +26,7 @@ class EnrollmentCourseRequestController extends Controller
         $newRequest = new  EnrollmentCourseRequest;
         $newRequest->courseId = $request->courseId;
         $newRequest->studentId = $request->studentId;
-        $newRequest->time = now(+3);
+        $newRequest->time = $request->time;
         return response()->json($newRequest->save());
     }
 
@@ -37,11 +37,15 @@ class EnrollmentCourseRequestController extends Controller
         $sc = new student_course;
         $sc->courseId = $ecr->courseId;
         $sc->studentId = $ecr->studentId;
-        $sc->time = now(+3);
+        $sc->time = $ecr->time;
 
-        $sc->save();
-        $_ecr_->delete();
+        if ($sc->save()) {
 
+            $sc->update(['created_at' => $ecr->created_at]);
+            $_ecr_->delete();
+            return response()->json(['1' => 'Request accepted']);
+        }
+        return response()->json(['-1' => 'Error']);
     }
 
     public function DismissRequest(Request $request)

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\offer;
+use App\Models\offer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
@@ -25,7 +25,7 @@ class OfferController extends Controller
         $offer->endDateTime = $request->endDateTime;
         if ($offer->save())
             return response()->json(['1' => 'Offer added successfully']);
-        return response()->json(['-1' => 'Error']);
+        return response()->json(['Error' => 'Added failed']);
     }
 
     public function GetById($id)
@@ -42,7 +42,7 @@ class OfferController extends Controller
     {
         if (DB::table('offer')->where('offerId', $offerId)->delete())
             return response()->json(['1' => 'offer deleted successfully']);
-        return response()->json(['-1' => 'Error']);
+        return response()->json(['Error' => 'Deleted failed']);
     }
 
     public function Edit(Request $request)
@@ -56,6 +56,6 @@ class OfferController extends Controller
         if (DB::table('offer')->where('offerId', $offerId)->update($UpdateData)) {
             return response()->json(['1' => 'Offer updated successfully']);
         }
-        return response()->json(['-1' => 'Error']);
+        return response()->json(['Error' => 'Updated failed']);
     }
 }

@@ -21,6 +21,7 @@ class CreateInstituteTable extends Migration
             $table->string('password');
             $table->string('email')->unique();
             $table->string('city');
+            $table->string('region');
             $table->string('street');
             $table->text('details');
             $table->string('openTime');

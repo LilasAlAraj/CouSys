@@ -3,32 +3,24 @@
 
 namespace App\Http\Controllers;
 
-
 use Illuminate\Http\Request;
 
 class SearchController
 {
-
-    public function Search(Request $request)
+    public function G_Search(Request $request)
     {
-        switch ($request->filter)
-        {
-            case 'Institute':
-                return (new InstituteController())->GetByName($request->name);
-                break;
+        $courses = (new Coursecontrol())->Search($request->word);
+        $institutes = (new InstituteController())->Search($request->word);
+        if ($courses != null && $institutes != null)
+            return response()->json(['courses' => $courses, 'institutes' => $institutes]);
+    }
 
-            case 'CourseType':
-                return (new Coursecontrol())->GetByType($request->type);
-                break;
-
-            case 'CourseName':
-                return (new Coursecontrol())->GetByName($request->name);
-                break;
-
-            case 'Date':
-                return (new Coursecontrol())->GetByDate($request->date);
-                break;
-                
+    public function Filter(Request $request)
+    {
+        $courses = (new Coursecontrol())->Filter($request);
+        if ($courses != null) {
+            return response()->json(['courses' => $courses]);
         }
+        return response()->json(['Error' => 'No Result']);
     }
 }

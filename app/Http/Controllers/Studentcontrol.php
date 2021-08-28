@@ -2,14 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\student;
 use Illuminate\Http\Request;
-use App\student;
 use App\Models\Accounts_log;
 use Illuminate\Support\Facades\DB;
 
 class Studentcontrol extends Controller
 {
-
 
     public static function studentLogged(Request $request)
     {
@@ -17,7 +16,7 @@ class Studentcontrol extends Controller
         if ($std) {
             return response()->json(['student_ID' => $std->studentId]);
         } else {
-            return response()->json(['-1' => 'Email or Password not match']);
+            return response()->json(['Error' => 'Password wrong']);
         }
     }
 
@@ -53,10 +52,9 @@ class Studentcontrol extends Controller
             if ($student->save() && $accountLog->save()) {
                 return response()->json(['student_Id' => $student->studentId]);
             }
-            return response()->json(['-1', 'Error']);
+            return response()->json(['Error', 'Sign up failed']);
         } else {
-
-            return response()->json(['-1', 'this account is already registered']);
+            return response()->json(['Error', 'this account is already registered']);
         }
 
     }
@@ -70,7 +68,11 @@ class Studentcontrol extends Controller
     public function deleteStudentRecord(Request $request)
     {
         $student = DB::table('student')->where('studentId', $request->id);
-        return response()->json($student->delete());
+
+        if ($student->delete()) {
+            return response()->json(['1' => 'Deleted successfully']);
+        }
+        return response()->json(['Error' => 'Deleted failed']);
     }
 
     //***************************************************************************//
@@ -89,8 +91,13 @@ class Studentcontrol extends Controller
     public function DeleteById($studentId)
     {
         if (DB::table('student')->where('studentId', $studentId)->delete()) {
-            return response()->json(['1' => 'student deleted successfully']);
+            return response()->json(['1' => 'Deleted successfully']);
         }
-        return response()->json(['-1' => 'Error']);
+        return response()->json(['Error' => 'Deleted failed']);
+    }
+
+    public function GetALL()
+    {
+        return DB::table('student')->get()->all();
     }
 }

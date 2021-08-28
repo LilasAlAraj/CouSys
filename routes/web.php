@@ -1,6 +1,8 @@
 <?php
+
 //namespace App\Http\Controllers;
 
+use App\Http\Controllers\AccountsLogController;
 use App\Http\Controllers\Admincontrol;
 use App\Http\Controllers\EnrollmentCourseRequestController;
 use App\Http\Controllers\FeedbackController;
@@ -9,6 +11,7 @@ use App\Http\Controllers\InstituteController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\Studentcontrol;
 use Illuminate\Support\Facades\Route;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -26,8 +29,9 @@ use Illuminate\Support\Facades\Route;
 /////             Route for Login                ///
 /////                                                ///
 ////////////////////////////////////////////////////////
-Route::post('/login', [\App\Http\Controllers\AccountsLogController::class, 'LoginProcess']);
+Route::post('/login', [AccountsLogController::class, 'LoginProcess']);
 
+Route::get('/HomePage', [AccountsLogController::class, 'HomePage']);
 
 ////////////////////////////////////////////////////////
 /////                                                ///
@@ -67,6 +71,8 @@ Route::post('/institute/remove-file/', [FileController::class, 'fileRemove'])->n
 
 
 Route::post('/InstituteSignUp', [InstituteController::class, 'InstituteSignUp']);
+
+Route::get('/InstituteProfile/{instituteId}', [InstituteController::class, 'InstituteProfile']);
 
 //////
 ////Courses
@@ -131,4 +137,7 @@ Route::get('/ViewAllStudent', [Admincontrol::class, 'ViewAllStudent']);
 Route::get('/DeleteStudent/{studentId}', [Admincontrol::class, 'DeleteStudent']);
 
 //Search
-Route::post('/Search', [SearchController::class, 'Search']);
+Route::post('/Search', [SearchController::class, 'G_Search']);
+//Filter
+Route::post('/Filter', [SearchController::class, 'Filter']);
+

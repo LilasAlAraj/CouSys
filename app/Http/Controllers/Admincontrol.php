@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\admin;
 use App\Models\Accounts_log;
+use App\Models\admin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
@@ -13,11 +13,12 @@ class Admincontrol extends Controller
 
     public static function AdminLogged(Request $request)
     {
-        $admin = DB::table('admin')->where('email', $request->username)->where('password', $request->password)->first();
+
+        $admin = DB::table('admin')->where('email', $request->email)->where('password', $request->password)->first();
         if ($admin) {
             return response()->json(['admin_ID' => $admin->adminId]);
         } else {
-            return response()->json(['-1' => 'Email or Password not match']);
+            return response()->json(['Error' => 'Password wrong']);
         }
     }
 
@@ -25,7 +26,7 @@ class Admincontrol extends Controller
     {
         $adminId = DB::table('admin')->where('email', $request->email)->where('password', $request->password)->first();
         if ($adminId) {
-            return response()->json(['-1' => 'Username added before']);
+            return response()->json(['Error' => 'Username added before']);
         } else {
             $admin = new admin();
             $admin->email = $request->email;
@@ -37,7 +38,7 @@ class Admincontrol extends Controller
             $accountLog->typeOfUser = 'Admin';
             if ($accountLog->save() && $admin->save())
                 return response()->json(['1' => 'New admin added successfully']);
-            return response()->json(['-1' => 'Error']);
+            return response()->json(['Error' => 'Added failed']);
         }
     }
 
@@ -45,7 +46,7 @@ class Admincontrol extends Controller
     {
         $institutes = (new InstituteController)->GetNotAccepted();
         if ($institutes == null) {
-            return response()->json(['-1' => 'No Request']);
+            return response()->json(['Error' => 'No Request']);
         } else {
             return response()->json(['1' => $institutes]);
         }
@@ -55,7 +56,7 @@ class Admincontrol extends Controller
     {
         $institutes = (new InstituteController)->GetALL();
         if ($institutes == null) {
-            return response()->json(['-1' => 'There is no institutes!']);
+            return response()->json(['Error' => 'There is no institutes!']);
         } else {
             return response()->json(['1' => $institutes]);
         }
@@ -72,10 +73,10 @@ class Admincontrol extends Controller
         return (new InstituteController())->AcceptRequest($instituteId);
     }
 
-    public function DismissRequest($instituteId)
-    {
-        (new InstituteController())->DismissRequest($instituteId);
-    }
+//    public function DismissRequest($instituteId)
+//    {
+//        (new InstituteController())->DismissRequest($instituteId);
+//    }
 
     ///////////////////////////////////////////////////////////////
 
@@ -83,7 +84,7 @@ class Admincontrol extends Controller
     {
         $students = (new Studentcontrol())->GetALL();
         if ($students == null) {
-            return response()->json(['-1' => 'There is no institutes!']);
+            return response()->json(['Error' => 'There is no students!']);
         } else {
             return response()->json(['1' => $students]);
         }
