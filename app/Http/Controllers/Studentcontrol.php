@@ -26,15 +26,6 @@ class Studentcontrol extends Controller
     //                                                     //
     //*****************************************************//
 
-
-    public function CheckExistedBefore($email)
-    {
-        $std = DB::table('student')->where('email', $email)->get()->first();
-        if ($std)
-            return false;
-        return true;
-    }
-
     public function storeStudentRecord(Request $request)
     {
         if ($this->CheckExistedBefore($request->email)) {
@@ -57,6 +48,14 @@ class Studentcontrol extends Controller
             return response()->json(['Error', 'this account is already registered']);
         }
 
+    }
+
+    public function CheckExistedBefore($email)
+    {
+        $std = DB::table('student')->where('email', $email)->get()->first();
+        if ($std)
+            return false;
+        return true;
     }
 
     //**************************************************************//

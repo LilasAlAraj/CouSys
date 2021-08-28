@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\Institute;
@@ -9,12 +10,30 @@ use Illuminate\Support\Facades\Session;
 
 class InstituteController extends Controller
 {
-    public function CheckExistedBefore($email)
+    public static function institutelogged(Request $request)
     {
-        $inst = DB::table('institute')->where('email', $email)->first();
-        if ($inst)
-            return false;
-        return true;
+        $institute = DB::table('institute')->where('email', $request->email)->where('password', $request->password)->first();
+        if ($institute) {
+            if (($institute->isAccepted) == true) {
+                return response()->json(['institute_ID' => $institute->instituteId]);
+            } else {
+                return response()->json(['Error' => 'Your Request is in progress']);
+            }
+        } else {
+            return response()->json(['Error' => 'Password wrong']);
+        }
+    }
+
+    public static function GetTopRating()
+    {
+        $institutes = DB::table('institute')
+            ->selectRaw('*, votings/numOfVotings as RATING')
+            ->orderBy('RATING', 'DESC')
+            ->take(5)
+            ->get();
+        if ($institutes)
+            return $institutes;
+        return null;
     }
 
     public function InstituteSignUp(Request $request)
@@ -45,25 +64,27 @@ class InstituteController extends Controller
         }
     }
 
-
-    public static function institutelogged(Request $request)
+    public function CheckExistedBefore($email)
     {
-        $institute = DB::table('institute')->where('email', $request->email)->where('password', $request->password)->first();
-        if ($institute) {
-            if (($institute->isAccepted) == true) {
-                return response()->json(['institute_ID' => $institute->instituteId]);
-            } else {
-                return response()->json(['Error' => 'Your Request is in progress']);
-            }
-        } else {
-            return response()->json(['Error' => 'Password wrong']);
-        }
+        $inst = DB::table('institute')->where('email', $email)->first();
+        if ($inst)
+            return false;
+        return true;
     }
 
     public function InstituteProfile($instituteId)
     {
         $inst = DB::table('institute')->where('instituteId', $instituteId)->get()->first();
         return response()->json(['details' => $inst, 'courses' => $this->ViewAllCoursesWithOffer($instituteId)]);
+    }
+
+    public function ViewAllCoursesWithOffer($inst_id)
+    {
+        //  $inst_id=$request->session()->get('institute_session');//get the id of the institute
+        $courses = (new Coursecontrol)->GetAllWithOffer($inst_id);
+        if ($courses)
+            return response()->json(['1' => $courses]);
+        return response()->json(['-1' => 'No courses']);
     }
 
     public function GetNotAccepted()
@@ -75,6 +96,15 @@ class InstituteController extends Controller
     {
         return DB::table('institute')->where('isAccepted', true)->get()->all();
     }
+
+//    public function DismissRequest($instituteId)
+//    {
+//        DB::table('institute')->find($instituteId)->delete();
+//        session::flash('hint', 'Request deleted successfully!');
+//        return redirect('/DashBoard');
+//    }
+
+    ///////////////////   Courses     ///////////////////
 
     public function DeleteById($instituteId)
     {
@@ -92,24 +122,6 @@ class InstituteController extends Controller
         return response()->json(['-1' => 'Error']);
     }
 
-//    public function DismissRequest($instituteId)
-//    {
-//        DB::table('institute')->find($instituteId)->delete();
-//        session::flash('hint', 'Request deleted successfully!');
-//        return redirect('/DashBoard');
-//    }
-
-    ///////////////////   Courses     ///////////////////
-
-    public function ViewAllCoursesWithOffer($inst_id)
-    {
-        //  $inst_id=$request->session()->get('institute_session');//get the id of the institute
-        $courses = (new Coursecontrol)->GetAllWithOffer($inst_id);
-        if ($courses)
-            return response()->json(['1' => $courses]);
-        return response()->json(['-1' => 'No courses']);
-    }
-
     public function AddNewCourse(Request $request)
     {
         return (new Coursecontrol)->store($request);
@@ -125,12 +137,12 @@ class InstituteController extends Controller
         return (new Coursecontrol)->Edit($request);
     }
 
+    ///////////////////   Offers     ///////////////////
+
     public function StarredCourse($courseId)
     {
         return (new Coursecontrol)->Starred($courseId);
     }
-
-    ///////////////////   Offers     ///////////////////
 
     public function ViewAllOffers($inst_id)
     {
@@ -150,13 +162,14 @@ class InstituteController extends Controller
         return (new OfferController)->Delete($offerId);
     }
 
+    ///////////////////   Files     ///////////////////
 
     public function EditOffer(Request $request)
     {
         return (new OfferController)->Edit($request);
     }
 
-    ///////////////////   Files     ///////////////////
+    ///////////////////   search     ///////////////////
 
     public function ViewAllFiles($courseId)
     {
@@ -166,7 +179,7 @@ class InstituteController extends Controller
         return response()->json(['-1' => 'No $Files']);
     }
 
-    ///////////////////   search     ///////////////////
+    //// HomePage
 
     public function Search($word)
     {
@@ -178,19 +191,6 @@ class InstituteController extends Controller
         if ($institutes) {
             return $institutes;
         }
-        return null;
-    }
-
-    //// HomePage
-    public static function GetTopRating()
-    {
-        $institutes = DB::table('institute')
-            ->selectRaw('*, votings/numOfVotings as RATING')
-            ->orderBy('RATING', 'DESC')
-            ->take(5)
-            ->get();
-        if ($institutes)
-            return $institutes;
         return null;
     }
 }

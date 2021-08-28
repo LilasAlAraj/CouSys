@@ -10,7 +10,6 @@ class StudentCourseController extends Controller
 {
 
 
-
     //*****************************************************//
     //                                                     //
     //***********enrol a new student in a course***********//
@@ -32,18 +31,17 @@ class StudentCourseController extends Controller
         return response()->json(['Error' => 'Failed']);
     }
 
-
-    private function checkStudentExisting($id)
+    private function checkCourseExisting($id)
     {
-        $inst = DB::table('institute')->where('instituteId', $id)->get()->first();
+        $inst = DB::table('institute')->where('courseId', $id)->get()->first();
         if ($inst)
             return false;
         return true;
     }
 
-    private function checkCourseExisting($id)
+    private function checkStudentExisting($id)
     {
-        $inst = DB::table('institute')->where('courseId', $id)->get()->first();
+        $inst = DB::table('institute')->where('instituteId', $id)->get()->first();
         if ($inst)
             return false;
         return true;

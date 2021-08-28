@@ -10,6 +10,19 @@ use Illuminate\Support\Facades\Session;
 class Coursecontrol extends Controller
 {
 
+    public static function GetRandomCourses()
+    {
+        $courses = DB::table('course')
+            ->leftJoin('offer', 'course.courseId', '=', 'offer.courseId')
+            ->inRandomOrder()
+            ->select('course.*', 'offer.offerId', 'offer.offerDetails', 'offer.startDateTime', 'offer.endDateTime')
+            ->take(15)
+            ->get();
+        if ($courses)
+            return $courses;
+        return null;
+    }
+
     public function GetAllWithOffer($inst_id)
     {
         $course = DB::table('course')
@@ -92,13 +105,14 @@ class Coursecontrol extends Controller
         return response()->json(['-1' => 'Error']);
     }
 
+
+    //// Search and Filter
+
     public function DeleteByInsId($instId)
     {
         DB::table('course')->where('instituteId', $instId)->delete();
     }
 
-
-    //// Search and Filter
     public function Search($word)
     {
         $courses = DB::table('course')
@@ -111,6 +125,8 @@ class Coursecontrol extends Controller
         }
         return null;
     }
+
+    //// HomePage
 
     public function Filter(Request $request)
     {
@@ -132,20 +148,6 @@ class Coursecontrol extends Controller
             $coursesQuery->where('cost', '<=', $request->Cost);
         }
         $courses = $coursesQuery->get()->all();
-        if ($courses)
-            return $courses;
-        return null;
-    }
-
-    //// HomePage
-    public static function GetRandomCourses()
-    {
-        $courses = DB::table('course')
-            ->leftJoin('offer', 'course.courseId', '=', 'offer.courseId')
-            ->inRandomOrder()
-            ->select('course.*', 'offer.offerId', 'offer.offerDetails', 'offer.startDateTime', 'offer.endDateTime')
-            ->take(15)
-            ->get();
         if ($courses)
             return $courses;
         return null;
